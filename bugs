@@ -1,0 +1,5 @@
+./src/SerialBridge.c: Debug flash Red LED | id:05c8051379bc5695dcdbb5b92ac47dc32ad8795b
+./src/SerialBridge.c: Echo back to sender | id:42c92fb9a99b5f9c246800fb9ffafba3e28a3d1e
+./src/SerialBridge.c: Does not configure interrupts to trigger on error. | id:4ec0b21b5a934b32db5eee4074eeb7484e2f837d
+./src/SerialBridge.c: GenericUARTIntHandler does not check success of write | id:b1928533725cefd657890be7a2dfc271239904e3
+./src/SerialBridge.c: Debug flash Blue LED | id:e37f29c4cbd83599e629233a6c39ab37e61d6c5e
