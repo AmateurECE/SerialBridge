@@ -7,7 +7,7 @@
 #
 # CREATED:	    04/13/2019
 #
-# LAST EDITED:	    04/13/2019
+# LAST EDITED:	    04/15/2019
 ###
 
 TOP:=$(PWD)
@@ -16,6 +16,8 @@ PROJECT:=SerialBridge
 SRCS += src/$(PROJECT).c
 SRCS += src/startup_gcc.c
 SRCS += driverlib/uart.c
+SRCS += driverlib/interrupt.c
+SRCS += driverlib/cpu.c
 
 OBJS=$(patsubst %.c,%.o,$(SRCS))
 
