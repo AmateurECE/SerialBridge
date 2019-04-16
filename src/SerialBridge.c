@@ -7,7 +7,7 @@
  *
  * CREATED:	    04/13/2019
  *
- * LAST EDITED:	    04/15/2019
+ * LAST EDITED:	    04/16/2019
  ***/
 
 /******************************************************************************
@@ -43,6 +43,9 @@ typedef struct {
  * FUNCTIONS
  ***/
 
+// TODO: Update documentation
+// TODO: Implement brkctl (Break control)
+// TODO: Echoes the wrong characters
 void GenericUARTIntHandler(uint32_t srcUart, uint32_t dstUart, bool echo)
 {
   // Clear interrupt status
@@ -60,8 +63,11 @@ void GenericUARTIntHandler(uint32_t srcUart, uint32_t dstUart, bool echo)
 
     // TODO: GenericUARTIntHandler does not check success of write
     UARTCharPutNonBlocking(dstUart, c);
+
+    if (echo) { // Echo back to sender
+      UARTCharPutNonBlocking(srcUart, c);
+    }
   }
-  // TODO: Echo back to sender
 }
 
 void UARTZeroHandler(void) {
@@ -91,18 +97,20 @@ static void ConfigureUART(uart_t* uart)
   UARTConfigSetExpClk(uart->uartBase, ROM_SysCtlClockGet(), uart->baudRate,
 		      uart->config);
 
-  // Enable interrupts
-  // We could register the interrupt statically. But this is only done once,
-  // at program startup, and it allows the entire application to be confined
-  // to only this source file.
-  UARTIntRegister(uart->uartBase, uart->intHandler);
+  // Enable interrupts: Must be done before registering interrupt handler.
+  // TODO: Simplify UART interrupt configuration
+  UARTIntEnable(uart->uartBase,
+		(UART_INT_RX | UART_INT_TX | UART_INT_9BIT | UART_INT_OE
+		 | UART_INT_BE | UART_INT_PE | UART_INT_FE | UART_INT_RT
+		 | UART_INT_DSR | UART_INT_DCD | UART_INT_CTS | UART_INT_RI));
 
-  // TODO: Does not configure interrupts to trigger on error.
-  UARTIntEnable(uart->uartBase, UART_INT_RX);
+  // We *could* register the interrupt statically. But this allows the entire
+  // application to be confined to only this source file.
+  UARTIntRegister(uart->uartBase, uart->intHandler);
 
   // Configure RX int to trigger when the FIFO has seven bytes in it. Send 0
   // as ui32TxLevel because we do not trigger TX int.
-  UARTFIFOLevelSet(uart->uartBase, 0, UART_FIFO_RX7_8);
+  /* UARTFIFOLevelSet(uart->uartBase, 0, UART_FIFO_RX7_8); */
 }
 
 /******************************************************************************
@@ -145,14 +153,14 @@ int main()
     .intHandler = UARTOneHandler,
   };
 
+  // Global enable interrupts: Must be done before configuring UART interrupts
+  IntMasterEnable();
+
   ConfigureUART(&uart0);
   ConfigureUART(&uart1);
 
-  // Global enable interrupts
-  IntMasterEnable();
-
-  /* asm volatile ("wfi"); */
-  while (1);
+  // Sleep until an interrupt occurs
+  asm volatile ("wfi");
 }
 
 /*****************************************************************************/

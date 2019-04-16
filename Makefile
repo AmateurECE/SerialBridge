@@ -7,7 +7,7 @@
 #
 # CREATED:	    04/13/2019
 #
-# LAST EDITED:	    04/15/2019
+# LAST EDITED:	    04/16/2019
 ###
 
 TOP:=$(PWD)
@@ -25,7 +25,8 @@ OBJS=$(patsubst %.c,%.o,$(SRCS))
 PART=TM4C123GH6PM
 SCATTERgcc_$(PROJECT)=src/$(PROJECT).ld
 ENTRY_$(PROJECT)=ResetISR
-CFLAGSgcc=-DTARGET_IS_TM4C123_RB1 -DUART_BUFFERED -I $(TOP)/include/ 
+CFLAGSgcc=-g -O0 -Wall -Wextra -DTARGET_IS_TM4C123_RB1 -DUART_BUFFERED \
+	-I $(TOP)/include/ -I ./
 # VERBOSE=1
 
 include $(TOP)/makedefs
