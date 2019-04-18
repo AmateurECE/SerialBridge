@@ -1,7 +1,4 @@
-src/SerialBridge.c: Simplify UART interrupt configuration | id:0097cf408f0b2d339d2cd66140bf573c9f80770f
-src/SerialBridge.c: Implement brkctl (Break control) | id:0b44e24c599b8a3b4200879b9b9386497f7d734e
-src/SerialBridge.c: GenericUARTIntHandler does not check success of write | id:4ea93a34b490e8e6863666dba31f75e5e4caa9ab
-src/SerialBridge.c: Debug flash Blue LED | id:6ab9123b32d7d7808d3bb39ce4238433972907ac
-src/SerialBridge.c: Debug flash Red LED | id:91307fb2bf7dca5949865540d068486de51a8021
-src/SerialBridge.c: Update documentation | id:b02c91eb0745a710c6a996e78a49bdf12dd1a7f1
-src/SerialBridge.c: Echoes the wrong characters | id:c6bd36b5a101915d736b152862caadeee1112e8f
+./src/SerialBridge.c: Debug flash Red LED | id:05c8051379bc5695dcdbb5b92ac47dc32ad8795b
+./src/SerialBridge.c: Update documentation | id:30f7198234dd87ace6754c750f1fb2ed16fca826
+./src/SerialBridge.c: GenericUARTIntHandler does not check success of write | id:b1928533725cefd657890be7a2dfc271239904e3
+./src/SerialBridge.c: Debug flash Blue LED | id:e37f29c4cbd83599e629233a6c39ab37e61d6c5e
