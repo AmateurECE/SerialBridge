@@ -44,8 +44,6 @@ typedef struct {
  ***/
 
 // TODO: Update documentation
-// TODO: Implement brkctl (Break control)
-// TODO: Echoes the wrong characters
 void GenericUARTIntHandler(uint32_t srcUart, uint32_t dstUart, bool echo)
 {
   // Clear interrupt status
@@ -71,7 +69,7 @@ void GenericUARTIntHandler(uint32_t srcUart, uint32_t dstUart, bool echo)
 }
 
 void UARTZeroHandler(void) {
-  GenericUARTIntHandler(UART0_BASE, UART1_BASE, true);
+  GenericUARTIntHandler(UART0_BASE, UART1_BASE, false);
   // TODO: Debug flash Red LED
 }
 
@@ -98,11 +96,7 @@ static void ConfigureUART(uart_t* uart)
 		      uart->config);
 
   // Enable interrupts: Must be done before registering interrupt handler.
-  // TODO: Simplify UART interrupt configuration
-  UARTIntEnable(uart->uartBase,
-		(UART_INT_RX | UART_INT_TX | UART_INT_9BIT | UART_INT_OE
-		 | UART_INT_BE | UART_INT_PE | UART_INT_FE | UART_INT_RT
-		 | UART_INT_DSR | UART_INT_DCD | UART_INT_CTS | UART_INT_RI));
+  UARTIntEnable(uart->uartBase, (UART_INT_RX | UART_INT_RT));
 
   // We *could* register the interrupt statically. But this allows the entire
   // application to be confined to only this source file.
@@ -121,7 +115,7 @@ int main()
 {
   // Set the clocking to run directly from the crystal.
   ROM_SysCtlClockSet(SYSCTL_SYSDIV_1 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN
-		     | SYSCTL_XTAL_25MHZ);
+		     | SYSCTL_XTAL_16MHZ);
 
   // Parameters for UART0
   uart_t uart0 = {
