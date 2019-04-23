@@ -7,7 +7,7 @@
  *
  * CREATED:	    04/13/2019
  *
- * LAST EDITED:	    04/18/2019
+ * LAST EDITED:	    04/23/2019
  ***/
 
 /******************************************************************************
@@ -23,6 +23,24 @@
 #include "driverlib/sysctl.h"
 #include "driverlib/uart.h"
 #include "driverlib/interrupt.h"
+
+#ifndef CONFIG_UART0_BAUD
+#   define CONFIG_UART0_BAUD 1500000L // 1.5Mbaud is the default.
+#else
+#   if CONFIG_UART0_BAUD != 1500000L && CONFIG_UART0_BAUD != 115200
+#	error Unsupported baud rate for UART0
+#   endif
+#endif
+
+#ifndef CONFIG_UART1_BAUD
+#   define CONFIG_UART1_BAUD 1500000L // 1.5Mbaud is the default.
+#else
+#   if CONFIG_UART1_BAUD != 1500000L && CONFIG_UART1_BAUD != 115200
+#	error Unsupported baud rate for UART1
+#   endif
+#endif
+
+#define PIOSC_CLOCK_FREQ 16000000L
 
 typedef struct {
 
@@ -91,8 +109,11 @@ static void ConfigureUART(uart_t* uart)
   ROM_GPIOPinConfigure(uart->txPin);
   ROM_GPIOPinTypeUART(uart->gpioBase, uart->gpioPins);
 
+  // Run the clock from the PIOSC so the core can be run from the 25 MHz clock
+  UARTClockSourceSet(uart->uartBase, UART_CLOCK_PIOSC);
+
   // Configure the UART's mode
-  UARTConfigSetExpClk(uart->uartBase, ROM_SysCtlClockGet(), uart->baudRate,
+  UARTConfigSetExpClk(uart->uartBase, PIOSC_CLOCK_FREQ, uart->baudRate,
 		      uart->config);
 
   // Enable interrupts: Must be done before registering interrupt handler.
@@ -101,10 +122,6 @@ static void ConfigureUART(uart_t* uart)
   // We *could* register the interrupt statically. But this allows the entire
   // application to be confined to only this source file.
   UARTIntRegister(uart->uartBase, uart->intHandler);
-
-  // Configure RX int to trigger when the FIFO has seven bytes in it. Send 0
-  // as ui32TxLevel because we do not trigger TX int.
-  /* UARTFIFOLevelSet(uart->uartBase, 0, UART_FIFO_RX7_8); */
 }
 
 /******************************************************************************
@@ -115,7 +132,7 @@ int main()
 {
   // Set the clocking to run directly from the crystal.
   ROM_SysCtlClockSet(SYSCTL_SYSDIV_1 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN
-		     | SYSCTL_XTAL_16MHZ);
+		     | SYSCTL_XTAL_25MHZ);
 
   // Parameters for UART0
   uart_t uart0 = {
@@ -126,7 +143,7 @@ int main()
     .gpioBase = GPIO_PORTA_BASE,
     .gpioPins = GPIO_PIN_0 | GPIO_PIN_1,
     .uartBase = UART0_BASE,
-    .baudRate = 115200,
+    .baudRate = CONFIG_UART0_BAUD,
     .config = (UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE
 	       | UART_CONFIG_PAR_NONE),
     .intHandler = UARTZeroHandler,
@@ -141,7 +158,7 @@ int main()
     .gpioBase = GPIO_PORTB_BASE,
     .gpioPins = GPIO_PIN_0 | GPIO_PIN_1,
     .uartBase = UART1_BASE,
-    .baudRate = 115200,
+    .baudRate = CONFIG_UART1_BAUD,
     .config = (UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE
 	       | UART_CONFIG_PAR_NONE),
     .intHandler = UARTOneHandler,
