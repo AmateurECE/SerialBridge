@@ -62,7 +62,17 @@ typedef struct {
  * FUNCTIONS
  ***/
 
-// TODO: Update documentation
+/******************************************************************************
+ * FUNCTION:        GenericUARTIntHandler
+ *
+ * DESCRIPTION:     Handle an interrupt from one of the UARTs. Copy chars from
+ *                  the srcUart FIFO to the dstUart FIFO. If `echo' is set,
+ *                  echo the characters back to the srcUart.
+ *
+ * ARGUMENTS:       srcUart: Base address of the UART to copy chars from
+ *                  dstUart: Base address of the UART to copy chars to
+ *                  echo: bool switch--echo chars back to src if true.
+ ***/
 void GenericUARTIntHandler(uint32_t srcUart, uint32_t dstUart, bool echo)
 {
   // Clear interrupt status
@@ -78,25 +88,39 @@ void GenericUARTIntHandler(uint32_t srcUart, uint32_t dstUart, bool echo)
       return;
     }
 
-    // TODO: GenericUARTIntHandler does not check success of write
     UARTCharPutNonBlocking(dstUart, c);
-
     if (echo) { // Echo back to sender
       UARTCharPutNonBlocking(srcUart, c);
     }
   }
 }
 
+/******************************************************************************
+ * FUNCTION:        UARTZeroHandler
+ *
+ * DESCRIPTION:     Handle interrupts from UART0.
+ ***/
 void UARTZeroHandler(void) {
   GenericUARTIntHandler(UART0_BASE, UART1_BASE, false);
-  // TODO: Debug flash Red LED
 }
 
+/******************************************************************************
+ * FUNCTION:        UARTOneHandler
+ *
+ * DESCRIPTION:     Handle interrupts from UART1.
+ ***/
 void UARTOneHandler(void) {
   GenericUARTIntHandler(UART1_BASE, UART0_BASE, false);
-  // TODO: Debug flash Blue LED
 }
 
+/******************************************************************************
+ * FUNCTION:        ConfigureUART
+ *
+ * DESCRIPTION:     Configure a UART. All information about the UART is taken
+ *                  from the uart_t structure passed in.
+ *
+ * ARGUMENTS:       uart: Configuration parameters and addresses of the UART.
+ ***/
 static void ConfigureUART(uart_t* uart)
 {
   // Enable the GPIO Peripheral used by the UART.
@@ -131,6 +155,7 @@ static void ConfigureUART(uart_t* uart)
 
 int main()
 {
+  // TODO: Use lower clock rate if using lower baud rate
   // Set the clocking to run directly from the crystal.
   ROM_SysCtlClockSet(SYSCTL_SYSDIV_2_5 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN
                      | SYSCTL_XTAL_16MHZ);

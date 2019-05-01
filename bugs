@@ -1,6 +1,3 @@
-./src/SerialBridge.c: Debug flash Red LED | id:05c8051379bc5695dcdbb5b92ac47dc32ad8795b
 ./src/startup_gcc.c: Allow the application to work after reboot | id:15a0a0cbaaa853bc1160f2d204cb73679a0f6588
-./src/SerialBridge.c: Update documentation | id:30f7198234dd87ace6754c750f1fb2ed16fca826
 ./src/SerialBridge.c: Use SysCtlDeepSleep instead | id:93a7ddbd97ad63c807d9f00a1bbc6a221198fcb2
-./src/SerialBridge.c: GenericUARTIntHandler does not check success of write | id:b1928533725cefd657890be7a2dfc271239904e3
-./src/SerialBridge.c: Debug flash Blue LED | id:e37f29c4cbd83599e629233a6c39ab37e61d6c5e
+./src/SerialBridge.c: Use lower clock rate if using lower baud rate | id:e466e4ddc73b38cffffa9847574090eda1213b27
