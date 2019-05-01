@@ -7,7 +7,7 @@
 #
 # CREATED:	    04/13/2019
 #
-# LAST EDITED:	    04/16/2019
+# LAST EDITED:	    05/01/2019
 ###
 
 TOP:=$(PWD)
@@ -33,6 +33,10 @@ include $(TOP)/makedefs
 
 # Rules
 all: force $(PROJECT).axf
+
+program: force $(PROJECT).axf
+	openocd -f board/ek-lm4f120xl.cfg \
+		-c "program $(PROJECT).axf verify reset exit"
 
 $(PROJECT).axf: force $(OBJS) src/$(PROJECT).ld
 

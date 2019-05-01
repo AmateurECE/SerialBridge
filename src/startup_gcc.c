@@ -243,6 +243,8 @@ extern uint32_t _ebss;
 void
 ResetISR(void)
 {
+    // TODO: Allow the application to work after reboot
+    // (without having to reprogram every time)
     uint32_t *pui32Src, *pui32Dest;
 
     //

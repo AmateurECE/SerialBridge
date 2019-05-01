@@ -7,7 +7,7 @@
  *
  * CREATED:	    04/13/2019
  *
- * LAST EDITED:	    04/23/2019
+ * LAST EDITED:	    05/01/2019
  ***/
 
 /******************************************************************************
@@ -25,18 +25,18 @@
 #include "driverlib/interrupt.h"
 
 #ifndef CONFIG_UART0_BAUD
-#   define CONFIG_UART0_BAUD 1500000L // 1.5Mbaud is the default.
-#else
-#   if CONFIG_UART0_BAUD != 1500000L && CONFIG_UART0_BAUD != 115200
-#	error Unsupported baud rate for UART0
+#   ifdef CONFIG_UART_BAUD
+#       define CONFIG_UART0_BAUD CONFIG_UART_BAUD
+#   else
+#       define CONFIG_UART0_BAUD 115200 // 115200 is the default.
 #   endif
 #endif
 
 #ifndef CONFIG_UART1_BAUD
-#   define CONFIG_UART1_BAUD 1500000L // 1.5Mbaud is the default.
-#else
-#   if CONFIG_UART1_BAUD != 1500000L && CONFIG_UART1_BAUD != 115200
-#	error Unsupported baud rate for UART1
+#   ifdef CONFIG_UART_BAUD
+#       define CONFIG_UART1_BAUD CONFIG_UART_BAUD
+#   else
+#       define CONFIG_UART1_BAUD 115200 // 115200 is the default.
 #   endif
 #endif
 
@@ -54,6 +54,7 @@ typedef struct {
   uint32_t baudRate;
   uint32_t config;
   void (*intHandler)(void);
+  uint32_t intMask;
 
 } uart_t;
 
@@ -117,7 +118,7 @@ static void ConfigureUART(uart_t* uart)
 		      uart->config);
 
   // Enable interrupts: Must be done before registering interrupt handler.
-  UARTIntEnable(uart->uartBase, (UART_INT_RX | UART_INT_RT));
+  UARTIntEnable(uart->uartBase, uart->intMask);
 
   // We *could* register the interrupt statically. But this allows the entire
   // application to be confined to only this source file.
@@ -131,8 +132,8 @@ static void ConfigureUART(uart_t* uart)
 int main()
 {
   // Set the clocking to run directly from the crystal.
-  ROM_SysCtlClockSet(SYSCTL_SYSDIV_1 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN
-		     | SYSCTL_XTAL_25MHZ);
+  ROM_SysCtlClockSet(SYSCTL_SYSDIV_2_5 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN
+                     | SYSCTL_XTAL_16MHZ);
 
   // Parameters for UART0
   uart_t uart0 = {
@@ -147,6 +148,7 @@ int main()
     .config = (UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE
 	       | UART_CONFIG_PAR_NONE),
     .intHandler = UARTZeroHandler,
+    .intMask = (UART_INT_RX | UART_INT_RT)
   };
 
   // Parameters for UART1
@@ -162,6 +164,7 @@ int main()
     .config = (UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE
 	       | UART_CONFIG_PAR_NONE),
     .intHandler = UARTOneHandler,
+    .intMask = (UART_INT_RX | UART_INT_RT)
   };
 
   // Global enable interrupts: Must be done before configuring UART interrupts
@@ -172,6 +175,7 @@ int main()
 
   // Sleep until an interrupt occurs
   while (1) {
+    // TODO: Use SysCtlDeepSleep instead
     asm volatile ("wfi");
   }
 }
