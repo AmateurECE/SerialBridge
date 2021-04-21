@@ -338,7 +338,7 @@ CPUwfi(void)
 //*****************************************************************************
 #if defined(codered) || defined(gcc) || defined(sourcerygxx)
 void __attribute__((naked))
-CPUbasepriSet(uint32_t ui32NewBasepri)
+CPUbasepriSet(uint32_t ui32NewBasepri __attribute__((unused)))
 {
     //
     // Set the BASEPRI register

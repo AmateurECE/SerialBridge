@@ -7,7 +7,7 @@
  *
  * CREATED:	    04/13/2019
  *
- * LAST EDITED:	    05/01/2019
+ * LAST EDITED:	    04/21/2021
  ***/
 
 /******************************************************************************
@@ -101,7 +101,11 @@ void GenericUARTIntHandler(uint32_t srcUart, uint32_t dstUart, bool echo)
  * DESCRIPTION:     Handle interrupts from UART0.
  ***/
 void UARTZeroHandler(void) {
+#ifdef CONFIG_UART_ECHO
+  GenericUARTIntHandler(UART0_BASE, UART1_BASE, true);
+#else
   GenericUARTIntHandler(UART0_BASE, UART1_BASE, false);
+#endif
 }
 
 /******************************************************************************

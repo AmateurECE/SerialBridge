@@ -7,7 +7,7 @@
 #
 # CREATED:	    04/13/2019
 #
-# LAST EDITED:	    05/01/2019
+# LAST EDITED:	    04/20/2021
 ###
 
 TOP:=$(PWD)
@@ -21,12 +21,18 @@ SRCS += driverlib/cpu.c
 
 OBJS=$(patsubst %.c,%.o,$(SRCS))
 
+CONFIG_UART_BAUDRATE=115200
+
 # Make variables understood by the makedefs file
 PART=TM4C123GH6PM
 SCATTERgcc_$(PROJECT)=src/$(PROJECT).ld
 ENTRY_$(PROJECT)=ResetISR
 CFLAGSgcc=-g -O0 -Wall -Wextra -DTARGET_IS_TM4C123_RB1 -DUART_BUFFERED \
+	-DCONFIG_UART_BAUDRATE=$(CONFIG_UART_BAUDRATE) \
 	-I $(TOP)/include/ -I ./
+ifeq (1,$(CONFIG_UART_ECHO))
+	CFLAGSgcc += -DCONFIG_UART_ECHO
+endif
 # VERBOSE=1
 
 include $(TOP)/makedefs
@@ -45,11 +51,10 @@ $(OBJS): force
 force:
 
 clean:
-	rm -rf src/*.o
-	rm -rf src/*.d
+	rm -rf ./**/*.o
+	rm -rf ./**/*.d
 	rm -rf $(PROJECT).axf
 	rm -rf $(PROJECT).bin
-	rm -rf `find . | grep \~`
 
 ifneq (${MAKECMDGOALS},clean)
 -include ${wildcard src/*.d} ${wildcard driverlib/*.d} __dummy__
