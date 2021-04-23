@@ -126,11 +126,11 @@ static void ConfigureUART(uart_t* uart)
   ROM_GPIOPinConfigure(uart->txPin);
   ROM_GPIOPinTypeUART(uart->gpioBase, uart->gpioPins);
 
-  // Run the clock from the PIOSC so the core can be run from the 25 MHz clock
-  UARTClockSourceSet(uart->uartBase, UART_CLOCK_PIOSC);
+  // Run the peripheral from the PLL
+  UARTClockSourceSet(uart->uartBase, UART_CLOCK_SYSTEM);
 
   // Configure the UART's mode
-  UARTConfigSetExpClk(uart->uartBase, PIOSC_CLOCK_FREQ, uart->baudRate,
+  UARTConfigSetExpClk(uart->uartBase, ROM_SysCtlClockGet(), uart->baudRate,
 		      uart->config);
 
   // Enable interrupts: Must be done before registering interrupt handler.
@@ -149,7 +149,7 @@ int main()
 {
   // TODO: Use lower clock rate if using lower baud rate
   // Set the clocking to run directly from the crystal.
-  ROM_SysCtlClockSet(SYSCTL_SYSDIV_2_5 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN
+  ROM_SysCtlClockSet(SYSCTL_SYSDIV_1 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN
                      | SYSCTL_XTAL_16MHZ);
 
   // Parameters for UART0
