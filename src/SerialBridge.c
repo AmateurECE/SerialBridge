@@ -7,7 +7,7 @@
  *
  * CREATED:	    04/13/2019
  *
- * LAST EDITED:	    04/21/2021
+ * LAST EDITED:	    04/22/2021
  ***/
 
 /******************************************************************************
@@ -24,20 +24,8 @@
 #include "driverlib/uart.h"
 #include "driverlib/interrupt.h"
 
-#ifndef CONFIG_UART0_BAUD
-#   ifdef CONFIG_UART_BAUD
-#       define CONFIG_UART0_BAUD CONFIG_UART_BAUD
-#   else
-#       define CONFIG_UART0_BAUD 115200 // 115200 is the default.
-#   endif
-#endif
-
-#ifndef CONFIG_UART1_BAUD
-#   ifdef CONFIG_UART_BAUD
-#       define CONFIG_UART1_BAUD CONFIG_UART_BAUD
-#   else
-#       define CONFIG_UART1_BAUD 115200 // 115200 is the default.
-#   endif
+#ifndef CONFIG_UART_BAUDRATE
+#define CONFIG_UART_BAUDRATE 115200
 #endif
 
 #define PIOSC_CLOCK_FREQ 16000000L
@@ -173,11 +161,11 @@ int main()
     .gpioBase = GPIO_PORTA_BASE,
     .gpioPins = GPIO_PIN_0 | GPIO_PIN_1,
     .uartBase = UART0_BASE,
-    .baudRate = CONFIG_UART0_BAUD,
+    .baudRate = CONFIG_UART_BAUDRATE,
     .config = (UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE
 	       | UART_CONFIG_PAR_NONE),
     .intHandler = UARTZeroHandler,
-    .intMask = (UART_INT_RX | UART_INT_RT)
+    .intMask = (UART_INT_RX | UART_INT_RT),
   };
 
   // Parameters for UART1
@@ -189,11 +177,11 @@ int main()
     .gpioBase = GPIO_PORTB_BASE,
     .gpioPins = GPIO_PIN_0 | GPIO_PIN_1,
     .uartBase = UART1_BASE,
-    .baudRate = CONFIG_UART1_BAUD,
+    .baudRate = CONFIG_UART_BAUDRATE,
     .config = (UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE
 	       | UART_CONFIG_PAR_NONE),
     .intHandler = UARTOneHandler,
-    .intMask = (UART_INT_RX | UART_INT_RT)
+    .intMask = (UART_INT_RX | UART_INT_RT),
   };
 
   // Global enable interrupts: Must be done before configuring UART interrupts
