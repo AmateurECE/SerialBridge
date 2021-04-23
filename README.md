@@ -12,27 +12,29 @@ connection.
 # Building the Project #
 
 Each stable release contains a pre-built binary that's ready to be programmed
-on the board. This is the recommended way to use the application. If you're
-a developer or a masochist (what's the difference?), read on for instructions
-on building from source.
-
-The project requires a working Arm cross compile environment. On the current
-version of Debian (as of this writing), this requires:
+on the board, if you're lazy like me. Building from source requires the
+`arm-none-eabi` toolchain. To install (e.g. on Debian):
 
 ```
 apt-get install gcc-arm-none-eabi libnewlib-arm-none-eabi
 ```
 
-Of course, to program the image, you will likely also need OpenOCD or the
-custom flashing application provided by Texas Instruments.
+OpenOCD or the Texas Instruments programming toolchain can be used to program
+the device. With a distribution of OpenOCD configured with `--enable-ti-icdi`:
+
+```
+openocd -f board/ek-lm4f120xl.cfg \
+    -c 'program SerialBridge.axf verify reset exit'
+```
 
 The project is completely self-contained, so as long as your environment is
-set up to cross compile for Arm, the project will build without requiring any
+set up to cross compile for ARM, the project will build without requiring any
 dependencies.
 
 # Connecting to a Downstream Port #
 
 On Linux, the upstream port tends to appear as `/dev/ttyACM0`. On OSX, it may
-appear as `tty.usbserial`. Both UARTs are configured to 115200-8-N-1. I have
-successfully used both minicom and gnuscreen to connect to a getty session over
-this application.
+appear as `tty.usbserial`. Both UARTs are configured to the baud rate specified
+at build time with `CONFIG_UART_BAUDRATE`, or 115200 by default, with 8 data
+bits, no parity, and 1 stop bit (8-N-1). Any serial terminal program such as
+TeraTerm, minicom, or GNU screen can be used to connect to the device.

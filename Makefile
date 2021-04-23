@@ -7,7 +7,7 @@
 #
 # CREATED:	    04/13/2019
 #
-# LAST EDITED:	    04/20/2021
+# LAST EDITED:	    04/22/2021
 ###
 
 TOP:=$(PWD)
@@ -38,17 +38,13 @@ endif
 include $(TOP)/makedefs
 
 # Rules
-all: force $(PROJECT).axf
+all: $(PROJECT).axf
 
-program: force $(PROJECT).axf
+program: $(PROJECT).axf
 	openocd -f board/ek-lm4f120xl.cfg \
 		-c "program $(PROJECT).axf verify reset exit"
 
-$(PROJECT).axf: force $(OBJS) src/$(PROJECT).ld
-
-$(OBJS): force
-
-force:
+$(PROJECT).axf: $(OBJS) src/$(PROJECT).ld
 
 clean:
 	rm -rf ./**/*.o
