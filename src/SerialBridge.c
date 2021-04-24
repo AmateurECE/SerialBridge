@@ -7,7 +7,7 @@
  *
  * CREATED:	    04/13/2019
  *
- * LAST EDITED:	    04/22/2021
+ * LAST EDITED:	    04/23/2021
  ***/
 
 /******************************************************************************
@@ -28,8 +28,6 @@
 #define CONFIG_UART_BAUDRATE 115200
 #endif
 
-#define PIOSC_CLOCK_FREQ 16000000L
-
 typedef struct {
 
   uint32_t hostGpio;
@@ -46,6 +44,41 @@ typedef struct {
 
 } uart_t;
 
+void UARTZeroHandler(void);
+void UARTOneHandler(void);
+
+// Parameters for UART0
+static const uart_t uart0 = {
+  .hostGpio = SYSCTL_PERIPH_GPIOA,
+  .hostUart = SYSCTL_PERIPH_UART0,
+  .rxPin = GPIO_PA0_U0RX,
+  .txPin = GPIO_PA1_U0TX,
+  .gpioBase = GPIO_PORTA_BASE,
+  .gpioPins = GPIO_PIN_0 | GPIO_PIN_1,
+  .uartBase = UART0_BASE,
+  .baudRate = CONFIG_UART_BAUDRATE,
+  .config = (UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE
+    | UART_CONFIG_PAR_NONE),
+  .intHandler = UARTZeroHandler,
+  .intMask = (UART_INT_RX | UART_INT_RT),
+};
+
+// Parameters for UART1
+static const uart_t uart1 = {
+  .hostGpio = SYSCTL_PERIPH_GPIOB,
+  .hostUart = SYSCTL_PERIPH_UART1,
+  .rxPin = GPIO_PB0_U1RX,
+  .txPin = GPIO_PB1_U1TX,
+  .gpioBase = GPIO_PORTB_BASE,
+  .gpioPins = GPIO_PIN_0 | GPIO_PIN_1,
+  .uartBase = UART1_BASE,
+  .baudRate = CONFIG_UART_BAUDRATE,
+  .config = (UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE
+    | UART_CONFIG_PAR_NONE),
+  .intHandler = UARTOneHandler,
+  .intMask = (UART_INT_RX | UART_INT_RT),
+};
+
 /******************************************************************************
  * FUNCTIONS
  ***/
@@ -61,25 +94,26 @@ typedef struct {
  *                  dstUart: Base address of the UART to copy chars to
  *                  echo: bool switch--echo chars back to src if true.
  ***/
-void GenericUARTIntHandler(uint32_t srcUart, uint32_t dstUart, bool echo)
+static inline void GenericUARTIntHandler(const uart_t* srcUart,
+  const uart_t* dstUart)
 {
   // Clear interrupt status
-  UARTIntClear(srcUart, UARTIntStatus(srcUart, true));
+  UARTIntClear(srcUart->uartBase, srcUart->intMask);
 
   // Copy data from srcUart to destUart
   int32_t c = 0;
-  while (UARTCharsAvail(srcUart)) {
+  while (UARTCharsAvail(srcUart->uartBase)) {
     // Peripheral Driver Library Documentation, Section 30.2.2.8, Return:
     //   "The UARTCharsAvail() function should be called before attempting to
     //    call this function."
-    if (-1 == (c = UARTCharGetNonBlocking(srcUart))) {
+    if (-1 == (c = UARTCharGetNonBlocking(srcUart->uartBase))) {
       return;
     }
 
-    UARTCharPutNonBlocking(dstUart, c);
-    if (echo) { // Echo back to sender
-      UARTCharPutNonBlocking(srcUart, c);
-    }
+    UARTCharPutNonBlocking(dstUart->uartBase, c);
+#ifdef CONFIG_UART_ECHO
+    UARTCharPutNonBlocking(srcUart->uartBase, c);
+#endif
   }
 }
 
@@ -89,11 +123,7 @@ void GenericUARTIntHandler(uint32_t srcUart, uint32_t dstUart, bool echo)
  * DESCRIPTION:     Handle interrupts from UART0.
  ***/
 void UARTZeroHandler(void) {
-#ifdef CONFIG_UART_ECHO
-  GenericUARTIntHandler(UART0_BASE, UART1_BASE, true);
-#else
-  GenericUARTIntHandler(UART0_BASE, UART1_BASE, false);
-#endif
+  GenericUARTIntHandler(&uart0, &uart1);
 }
 
 /******************************************************************************
@@ -102,7 +132,7 @@ void UARTZeroHandler(void) {
  * DESCRIPTION:     Handle interrupts from UART1.
  ***/
 void UARTOneHandler(void) {
-  GenericUARTIntHandler(UART1_BASE, UART0_BASE, false);
+  GenericUARTIntHandler(&uart1, &uart0);
 }
 
 /******************************************************************************
@@ -113,7 +143,7 @@ void UARTOneHandler(void) {
  *
  * ARGUMENTS:       uart: Configuration parameters and addresses of the UART.
  ***/
-static void ConfigureUART(uart_t* uart)
+static void ConfigureUART(const uart_t* uart)
 {
   // Enable the GPIO Peripheral used by the UART.
   ROM_SysCtlPeripheralEnable(uart->hostGpio);
@@ -131,7 +161,10 @@ static void ConfigureUART(uart_t* uart)
 
   // Configure the UART's mode
   UARTConfigSetExpClk(uart->uartBase, ROM_SysCtlClockGet(), uart->baudRate,
-		      uart->config);
+    uart->config);
+
+  // Set the FIFO Level at which interrupts are generated
+  UARTFIFOLevelSet(uart->uartBase, 0, UART_FIFO_RX6_8);
 
   // Enable interrupts: Must be done before registering interrupt handler.
   UARTIntEnable(uart->uartBase, uart->intMask);
@@ -150,39 +183,7 @@ int main()
   // TODO: Use lower clock rate if using lower baud rate
   // Set the clocking to run directly from the crystal.
   ROM_SysCtlClockSet(SYSCTL_SYSDIV_1 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN
-                     | SYSCTL_XTAL_16MHZ);
-
-  // Parameters for UART0
-  uart_t uart0 = {
-    .hostGpio = SYSCTL_PERIPH_GPIOA,
-    .hostUart = SYSCTL_PERIPH_UART0,
-    .rxPin = GPIO_PA0_U0RX,
-    .txPin = GPIO_PA1_U0TX,
-    .gpioBase = GPIO_PORTA_BASE,
-    .gpioPins = GPIO_PIN_0 | GPIO_PIN_1,
-    .uartBase = UART0_BASE,
-    .baudRate = CONFIG_UART_BAUDRATE,
-    .config = (UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE
-	       | UART_CONFIG_PAR_NONE),
-    .intHandler = UARTZeroHandler,
-    .intMask = (UART_INT_RX | UART_INT_RT),
-  };
-
-  // Parameters for UART1
-  uart_t uart1 = {
-    .hostGpio = SYSCTL_PERIPH_GPIOB,
-    .hostUart = SYSCTL_PERIPH_UART1,
-    .rxPin = GPIO_PB0_U1RX,
-    .txPin = GPIO_PB1_U1TX,
-    .gpioBase = GPIO_PORTB_BASE,
-    .gpioPins = GPIO_PIN_0 | GPIO_PIN_1,
-    .uartBase = UART1_BASE,
-    .baudRate = CONFIG_UART_BAUDRATE,
-    .config = (UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE
-	       | UART_CONFIG_PAR_NONE),
-    .intHandler = UARTOneHandler,
-    .intMask = (UART_INT_RX | UART_INT_RT),
-  };
+    | SYSCTL_XTAL_16MHZ);
 
   // Global enable interrupts: Must be done before configuring UART interrupts
   IntMasterEnable();

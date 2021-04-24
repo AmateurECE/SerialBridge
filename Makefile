@@ -7,7 +7,7 @@
 #
 # CREATED:	    04/13/2019
 #
-# LAST EDITED:	    04/22/2021
+# LAST EDITED:	    04/23/2021
 ###
 
 TOP:=$(PWD)
@@ -27,13 +27,18 @@ CONFIG_UART_BAUDRATE=115200
 PART=TM4C123GH6PM
 SCATTERgcc_$(PROJECT)=src/$(PROJECT).ld
 ENTRY_$(PROJECT)=ResetISR
-CFLAGSgcc=-g -O0 -Wall -Wextra -DTARGET_IS_TM4C123_RB1 -DUART_BUFFERED \
+CFLAGSgcc=-Wall -Wextra -Werror -DTARGET_IS_TM4C123_RB1 -DUART_BUFFERED \
 	-DCONFIG_UART_BAUDRATE=$(CONFIG_UART_BAUDRATE) \
 	-I $(TOP)/include/ -I ./
 ifeq (1,$(CONFIG_UART_ECHO))
 	CFLAGSgcc += -DCONFIG_UART_ECHO
 endif
-# VERBOSE=1
+
+ifeq (1,$(D))
+	CFLAGSgcc += -g -O0
+else
+	CFLAGSgcc += -O3
+endif
 
 include $(TOP)/makedefs
 
