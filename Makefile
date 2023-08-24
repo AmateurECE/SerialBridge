@@ -21,7 +21,9 @@ SRCS += driverlib/cpu.c
 
 OBJS=$(patsubst %.c,%.o,$(SRCS))
 
-CONFIG_UART_BAUDRATE=115200
+CONFIG_UART_BAUDRATE?=1500000
+CONFIG_UART_ECHO?=0
+D?=0
 
 # Make variables understood by the makedefs file
 PART=TM4C123GH6PM
